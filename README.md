@@ -13,7 +13,7 @@ This repository hosts the examples that are shown [on wrapper documentation](htt
 
 ## Installation
 
-To install it into your new environment, run the following commands:
+To install it into your new environment, run the following commands in UR5_coppelia directory:
 
 ```{shell}
 pip install -e .
@@ -23,7 +23,7 @@ pip install -e .
 Once you have installed the package in virtual environment, head to your project and use the following commands:
 ```{python}
 import gymnasium
-import UR5_coppelia
-env = gym.make('UR5_coppelia/UR5') # To change this registered name, head to __init__.py
+import UR5_coppelia # Mandatory, this step will register the environment
+env = gym.make('UR5_coppelia/UR5-v0') # To change this registered name, head to __init__.py
 ```
 

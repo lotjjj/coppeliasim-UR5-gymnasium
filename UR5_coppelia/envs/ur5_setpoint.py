@@ -136,27 +136,21 @@ class UR5Env(gym.Env):
         self.current_step = 0
 
 
-        # 随机初始化关节位置
+        # use rng
         initial_positions = self.np_random.uniform(-np.pi / 3, np.pi / 3, size=6)
 
-        # 设置关节为被动模式进行重置
-        self._set_joint_mode('position')
+        # Reset in dynamic mode
+        # Coppelia Forum
+        # https://forum.coppeliarobotics.com/viewtopic.php?t=11003
         for i, joint in enumerate(self.general_joints):
+            self.sim.setJointPosition(joint, float(initial_positions[i]))
             self.sim.setJointTargetPosition(joint, float(initial_positions[i]))
+            self.sim.resetDynamicObject(joint)
 
-        for i in range(20):
-            self.sim.step()
-
-        observation = self._get_observation()
-
-        self._set_joint_mode(self.control_mode)
-        # 获取初始观测
         observation = self._get_observation()
         self.state = observation
 
-        # 获取初始信息
         info = self._get_info()
-        # 设置关节为指定的控制模式
 
         return observation, info
 
@@ -175,17 +169,13 @@ class UR5Env(gym.Env):
 
         self.sim.step()
 
-        # 增加步数计数器
         self.current_step += 1
 
-        # 获取新观测
         observation = self._get_observation()
         self.state = observation
 
-        # 计算奖励
         reward = 0.0
 
-        # 检查是否终止
         terminated = False
 
         result, self.collision = self.sim.checkCollision(self.robot_collection, self.obstacle_collection)
@@ -201,17 +191,14 @@ class UR5Env(gym.Env):
 
         terminated = (bool(result) or terminated) if self.enable_collision_check else terminated
 
-        # 检查是否截断（超过最大步数）
         truncated = self.current_step >= self.max_episode_steps
 
-        # 获取信息
         info = self._get_info()
 
         return observation, reward, terminated, truncated, info
 
     def _set_joint_mode(self, mode: str):
         if mode == 'force':
-            # 设置关节模式为动态
             for joint in self.general_joints:
                 self.sim.setJointMode(joint, self.sim.jointmode_dynamic)
                 self.sim.setIntProperty(joint, 'dynCtrlMode', self.sim.jointdynctrl_force)
